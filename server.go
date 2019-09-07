@@ -10,7 +10,8 @@ import (
 )
  
 func main() {
- 
+	encryptionMap = make(map[string][]byte)
+	
     router := mux.NewRouter().StrictSlash(true)
     router.HandleFunc("/encrypt", Encrypt)
     router.HandleFunc("/decrypt", Decrypt)
@@ -61,6 +62,8 @@ func Encrypt(w http.ResponseWriter, r *http.Request) {
 
 		responseData.Result = "Data encrypted succesfully!"
 		responseData.Key = key
+
+		persistEncryptionData(requestData.ID, encryptedData)
 	}
 
 	responseBody, err := json.Marshal(responseData)
