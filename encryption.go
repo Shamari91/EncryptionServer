@@ -1,9 +1,12 @@
 package main
  
 import (
-    "crypto/aes"
+	"crypto/aes"
     "crypto/cipher"
     "crypto/rand"
+    //"encoding/pem"
+    //"fmt"
+    //"io/ioutil"
     "log"
 )
  
@@ -42,3 +45,17 @@ func encrypt(data []byte) ([]byte, []byte, error) {
 	
 	return data, generatedKey, nil
 }
+
+func decrypt(cipherText []byte, key []byte) (string, error) {
+	blockCipher, err := createCipher(key)
+	if err != nil {
+		log.Fatalf("Failed to create the AES cipher: %s", err)
+		return "", err
+	}
+
+    stream := cipher.NewCTR(blockCipher, IV)
+    stream.XORKeyStream(cipherText, cipherText)
+    return string(cipherText), nil  
+}
+
+

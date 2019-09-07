@@ -19,7 +19,6 @@ func main() {
     log.Fatal(http.ListenAndServe(":8080", router))
 }
  
-
 type encryptionReq struct {
   ID string
   Data string
@@ -70,8 +69,55 @@ func Encrypt(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(responseBody)
 }
- 
+
+type decryptionReq struct {
+	ID  string
+	Key []byte
+}
+
+type decryptionResponse struct {
+	Result string
+	Data   string
+}
+
 func Decrypt(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprintln(w, "Decrypting!")
+	reqBody, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	var reqPayload decryptionReq
+	err = json.Unmarshal(reqBody, &reqPayload)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	resultPayload := decryptionResponse{}
+	if reqPayload.ID == "" {
+		resultPayload.Result = "ID parameter is missing!"
+	} else if reqPayload.Key == nil {
+		resultPayload.Result = "Key paramter is missing!"
+	} else {
+		encryptedData := retrieveEncryptionData(reqPayload.ID)
+		if encryptedData == nil {
+			resultPayload.Data = ""
+		} else {
+			decryptedData, err := decrypt(encryptedData, reqPayload.Key)
+			if err != nil {
+				fmt.Printf("Error occured while trying to decrypt the data: %v \n", err)
+				resultPayload.Data = ""
+			} else {
+				resultPayload.Data = decryptedData
+			}
+		}
+		resultPayload.Result = "Data decrypted succesfully!"
+	}
+
+	responseBody, err := json.Marshal(resultPayload)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(responseBody)
 }
  
