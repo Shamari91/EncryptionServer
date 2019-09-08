@@ -34,7 +34,7 @@ func Encrypt(w http.ResponseWriter, r *http.Request) {
 	if requestData.ID == "" {
 		responseData.Result = "ID parameter is missing!"
 	} else {
-		encryptedData, key, err := encrypt([]byte(requestData.Data));
+		encryptedData, key, err := encrypt([]byte(requestData.Data))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -84,9 +84,9 @@ func Decrypt(w http.ResponseWriter, r *http.Request) {
 	} else if reqPayload.Key == nil {
 		responseData.Result = "Key paramter is missing!"
 	} else {
-		encryptedData, idValid := retrieveEncryptionData(reqPayload.ID); 
+		encryptedData, idValid := retrieveEncryptionData(reqPayload.ID)
 		if idValid {
-			decryptedData, err := decrypt(encryptedData, reqPayload.Key);
+			decryptedData, err := decrypt(encryptedData, reqPayload.Key)
 			if err == nil {
 				responseData.Data = decryptedData
 			}
