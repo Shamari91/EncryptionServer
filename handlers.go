@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-type encryptionReq struct {
+type encryptionRequest struct {
 	ID   string
 	Data string
 }
@@ -23,10 +23,10 @@ func Encrypt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var requestData encryptionReq
+	var requestData encryptionRequest
 	err = json.Unmarshal(body, &requestData)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -34,9 +34,9 @@ func Encrypt(w http.ResponseWriter, r *http.Request) {
 	if requestData.ID == "" {
 		responseData.Result = "ID parameter is missing!"
 	} else {
-		encryptedData, key, err := encrypt([]byte(requestData.Data))
+		encryptedData, key, err := encrypt([]byte(requestData.Data));
 		if err != nil {
-			http.Error(w, err.Error(), 500)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		responseData.Result = "Data encrypted succesfully!"
@@ -47,10 +47,11 @@ func Encrypt(w http.ResponseWriter, r *http.Request) {
 
 	responseBody, err := json.Marshal(responseData)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write(responseBody)
 }
 
-type decryptionReq struct {
+type decryptionRequest struct {
 	ID  string
 	Key []byte
 }
@@ -68,34 +69,35 @@ func Decrypt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var reqPayload decryptionReq
+	var reqPayload decryptionRequest
 	err = json.Unmarshal(reqBody, &reqPayload)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	resultPayload := decryptionResponse{}
+	responseData := decryptionResponse{}
+	responseData.Result = "Decryption failed!"
+
 	if reqPayload.ID == "" {
-		resultPayload.Result = "ID parameter is missing!"
+		responseData.Result = "ID parameter is missing!"
 	} else if reqPayload.Key == nil {
-		resultPayload.Result = "Key paramter is missing!"
+		responseData.Result = "Key paramter is missing!"
 	} else {
-		encryptedData := retrieveEncryptionData(reqPayload.ID)
-		if encryptedData == nil {
-			resultPayload.Data = ""
-		} else {
-			decryptedData, err := decrypt(encryptedData, reqPayload.Key)
-			if err != nil {
-				resultPayload.Data = ""
-			} else {
-				resultPayload.Data = decryptedData
+		encryptedData, idValid := retrieveEncryptionData(reqPayload.ID); 
+		if idValid {
+			decryptedData, err := decrypt(encryptedData, reqPayload.Key);
+			if err == nil {
+				responseData.Data = decryptedData
 			}
+			responseData.Result = "Data decrypted succesfully!"
+		} else {
+			responseData.Result = "ID is invalid!"
 		}
-		resultPayload.Result = "Data decrypted succesfully!"
 	}
 
-	responseBody, err := json.Marshal(resultPayload)
+	responseBody, err := json.Marshal(responseData)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write(responseBody)
 }
