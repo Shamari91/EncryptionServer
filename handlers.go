@@ -17,6 +17,7 @@ type encryptionResponse struct {
 }
 
 func Encrypt(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -62,8 +63,8 @@ type decryptionResponse struct {
 }
 
 func Decrypt(w http.ResponseWriter, r *http.Request) {
-	reqBody, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
+	reqBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
