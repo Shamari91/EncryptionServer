@@ -6,6 +6,7 @@ func persistEncryptionData(id string, data []byte) {
 	encryptionMap[id] = data
 }
 
-func retrieveEncryptionData(id string) []byte {
-	return encryptionMap[id]
+func retrieveEncryptionData(id string) ([]byte, bool) {
+	value, ok := encryptionMap[id]
+	return value, ok
 }
