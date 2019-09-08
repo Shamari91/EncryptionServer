@@ -9,6 +9,8 @@ Add the Database if there was more time.
 
 On the client code I would of changed the code to be a console menu system that way the user can continully send requests.
 
+There is a Global in the main function which instantiates the repo, Ideally what I would have done is instantiate the variable in main but then pass that object to the handler function as a parameter.
+
 ## Why I chose Golang Instead of C++
 
 Golang is a language im interested in and because thise role will require me to use Golang I thought this project was a great opportunity to use GoLang.
