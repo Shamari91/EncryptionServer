@@ -1,4 +1,4 @@
-package main
+package encryption
 
 import (
 	"crypto/aes"
@@ -7,6 +7,33 @@ import (
 )
 
 var IV = []byte("1837435475840435")
+
+func Encrypt(data []byte) ([]byte, []byte, error) {
+	generatedKey, err := createKey()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	blockCipher, err := createCipher(generatedKey)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	stream := cipher.NewCTR(blockCipher, IV)
+	stream.XORKeyStream(data, data)
+	return data, generatedKey, nil
+}
+
+func Decrypt(cipherText []byte, key []byte) (string, error) {
+	blockCipher, err := createCipher(key)
+	if err != nil {
+		return "", err
+	}
+
+	stream := cipher.NewCTR(blockCipher, IV)
+	stream.XORKeyStream(cipherText, cipherText)
+	return string(cipherText), nil
+}
 
 func createKey() ([]byte, error) {
 	genkey := make([]byte, 16)
@@ -23,31 +50,4 @@ func createCipher(key []byte) (cipher.Block, error) {
 		return nil, err
 	}
 	return blockCipher, nil
-}
-
-func encrypt(data []byte) ([]byte, []byte, error) {
-	generatedKey, err := createKey()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	blockCipher, err := createCipher(generatedKey)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	stream := cipher.NewCTR(blockCipher, IV)
-	stream.XORKeyStream(data, data)
-	return data, generatedKey, nil
-}
-
-func decrypt(cipherText []byte, key []byte) (string, error) {
-	blockCipher, err := createCipher(key)
-	if err != nil {
-		return "", err
-	}
-
-	stream := cipher.NewCTR(blockCipher, IV)
-	stream.XORKeyStream(cipherText, cipherText)
-	return string(cipherText), nil
 }
